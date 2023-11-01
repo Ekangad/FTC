@@ -1,0 +1,60 @@
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+@TeleOp(name = "MecanumTeleOp", group = "TeleOp")
+public class TELEOP extends LinearOpMode {
+    private DcMotor leftFront;
+    private DcMotor rightFront;
+    private DcMotor leftBack;
+    private DcMotor rightBack;
+
+    @Override
+    public void runOpMode() {
+        leftFront = hardwareMap.dcMotor.get("leftFront");
+        rightFront = hardwareMap.dcMotor.get("rightFront");
+        leftBack = hardwareMap.dcMotor.get("leftBack");
+        rightBack = hardwareMap.dcMotor.get("rightBack");
+
+        // Reverse the direction of the right motors if necessary
+        leftFront.setDirection(DcMotor.Direction.FORWARD);
+        leftBack.setDirection(DcMotor.Direction.FORWARD);
+        rightFront.setDirection(DcMotor.Direction.REVERSE);
+        rightBack.setDirection(DcMotor.Direction.REVERSE);
+
+        waitForStart();
+
+        while (opModeIsActive()) {
+            double rotate = -gamepad1.left_stick_y; // Forwards/Backwards // switched drive and rotate******************
+            double strafe = gamepad1.left_stick_x;  // Left/Right Strafing
+            double drive = gamepad1.right_stick_x; // Rotational movement
+
+            double powerLF = drive + strafe + rotate;
+            double powerRF = drive - strafe - rotate;
+            double powerLB = drive - strafe + rotate;
+            double powerRB = drive + strafe - rotate;
+
+            // Normalize the values so they don't exceed +/- 1
+            double maxPower = Math.max(Math.abs(powerLF), Math.abs(powerRF));
+            maxPower = Math.max(maxPower, Math.abs(powerLB));
+            maxPower = Math.max(maxPower, Math.abs(powerRB));
+            if (maxPower > 1.0) {
+                powerLF /= maxPower;
+                powerRF /= maxPower;
+                powerLB /= maxPower;
+                powerRB /= maxPower;
+            }
+
+            // Set motor powers
+            leftFront.setPower(powerLF);
+            rightFront.setPower(powerRF);
+            leftBack.setPower(powerLB);
+            rightBack.setPower(powerRB);
+
+            telemetry.addData("Status", "Running");
+            telemetry.update();
+        }
+    }
+}
